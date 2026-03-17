@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Amazon Crypto</title>
+    <link rel="stylesheet" href="./CSS/main.css" />
+    <link rel="stylesheet" href="./CSS/dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Mobile Header with Visible Buttons -->
+    <!-- Mobile Header / Controls -->
+    <div class="mobile-header">
+      <button
+        class="mobile-menu-toggle"
+        id="mobileMenuBtn"
+        aria-label="Open menu"
+      >
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <div class="mobile-logo">
+        <i class="fas fa-coins"></i>
+        <span>Amazon Crypto</span>
+      </div>
+
+      <!-- Optional: keep small actions if you want -->
+      <div class="mobile-quick-actions">
+        <button class="mobile-notif-btn" onclick="toggleMobileNotifications()">
+          <i class="fas fa-bell"></i>
+          <span class="badge" id="mobileNotificationBadge">0</span>
+        </button>
+        <button class="mobile-chat-btn" onclick="showSection('live-support')">
+          <i class="fas fa-headset"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Overlay when sidebar is open 
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>-->
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Mobile Menu Toggle (hidden by default on desktop) -->
+    <button
+      class="mobile-menu-toggle"
+      id="mobileMenuToggle"
+      style="display: none"
+    >
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="dashboard-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <i class="fas fa-coins"></i>
+            <span>Amazon Crypto</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a
+            href="#dashboard"
+            class="active"
+            onclick="showSection('dashboard')"
+          >
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="#investments" onclick="showSection('investments')">
+            <i class="fas fa-chart-line"></i>
+            <span>Investments</span>
+          </a>
+          <a href="#mining" onclick="showSection('mining')">
+            <i class="fas fa-bolt"></i>
+            <span>Mining</span>
+          </a>
+          <a href="#transactions" onclick="showSection('transactions')">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Transactions</span>
+          </a>
+          <a href="#referrals" onclick="showSection('referrals')">
+            <i class="fas fa-users"></i>
+            <span>Referrals</span>
+          </a>
+          <a href="#wallet" onclick="showSection('wallet')">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+          </a>
+          <a href="#support" onclick="showSection('support')">
+            <i class="fas fa-headset"></i>
+            <span>Support</span>
+          </a>
+          <!--<a href="#live-support" onclick="showSection('live-support')">
+            <i class="fas fa-comments"></i>
+            <span>Live Support</span>
+          </a>-->
+          <a href="#settings" onclick="showSection('settings')">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <div class="user-avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+              <p id="userName">Loading...</p>
+              <span>Member</span>
+            </div>
+          </div>
+          <a href="#" onclick="signOut()" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+          <div class="page-title">
+            <h1 id="pageTitle">Dashboard</h1>
+          </div>
+          <button
+            class="btn-chat-support"
+            id="open-support-chat"
+            title="Get help from our team"
+          >
+            <i class="fas fa-headset"></i>
+            <span class="btn-text">Live Support</span>
+            <span
+              class="support-badge chat-unread"
+              id="unread-chat-count"
+              style="display: none"
+              >0</span
+            >
+          </button>
+          <div class="top-bar-actions">
+            <div class="notification-icon" onclick="toggleNotifications()">
+              <i class="fas fa-bell"></i>
+              <span class="badge" id="notificationBadge">0</span>
+              <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notifications-header">
+                  <h4>Notifications</h4>
+                  <a href="#" onclick="markAllRead()">Mark all as read</a>
+                </div>
+                <div class="notifications-list" id="notificationsList">
+                  <p class="no-data">Loading...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="content-sections">
+          <!-- Dashboard Section -->
+          <section id="dashboard-section" class="content-section active">
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-wallet"></i>
+                </div>
+                <div class="stat-details">
+                  <h3>Wallet Balance</h3>
+                  <p class="stat-value" id="walletBalance">0.00000000</p>
+                  <span class="stat-label">BTC</span>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-bolt"></i>
+                </div>
+                <div class="stat-details">
+                  <h3>Mining Power</h3>
+                  <p class="stat-value" id="miningPower">0 MH/s</p>
+                  <span class="stat-label">Total Hashrate</span>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-details">
+                  <h3>Active Miners</h3>
+                  <p class="stat-value" id="activeMiners">0</p>
+                  <span class="stat-label">Running</span>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-details">
+                  <h3>Daily Earnings</h3>
+                  <p class="stat-value" id="dailyEarnings">0.00000000</p>
+                  <span class="stat-label">BTC</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-grid">
+              <div class="card">
+                <div class="card-header">
+                  <h3>Recent Investments</h3>
+                  <a href="#" onclick="showSection('investments')">View All</a>
+                </div>
+                <div class="card-body" id="investmentsList">
+                  <p class="no-data">Loading...</p>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <h3>Recent Transactions</h3>
+                  <a href="#" onclick="showSection('transactions')">View All</a>
+                </div>
+                <div class="card-body" id="recentTransactions">
+                  <p class="no-data">Loading...</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Investments Section -->
+          <section id="investments-section" class="content-section">
+            <div class="section-header">
+              <h2>My Investments</h2>
+              <button class="btn-primary" onclick="showBuyPackage()">
+                <i class="fas fa-plus"></i> Buy Package
+              </button>
+            </div>
+            <div class="investments-grid" id="allInvestments">
+              <p class="no-data">Loading investments...</p>
+            </div>
+          </section>
+
+          <!-- Mining Section -->
+          <section id="mining-section" class="content-section">
+            <h2>Mining Activity</h2>
+            <div class="mining-stats">
+              <div class="mining-card">
+                <h3>Active Sessions</h3>
+                <p id="miningSessions">0</p>
+              </div>
+              <div class="mining-card">
+                <h3>Total Hashrate</h3>
+                <p id="totalHashrate">0 MH/s</p>
+              </div>
+              <div class="mining-card">
+                <h3>Today's Profit</h3>
+                <p id="todayProfit">0.00000000 BTC</p>
+              </div>
+            </div>
+            <div class="mining-card">
+              <h3>Active Sessions</h3>
+              <div id="miningSessionsList"></div>
+              <!-- ← important -->
+            </div>
+            <div class="mining-history">
+              <h3>Profit History</h3>
+              <div id="miningHistoryList"></div>
+              <!-- ← important -->
+            </div>
+          </section>
+
+          <!-- Transactions Section -->
+          <section id="transactions-section" class="content-section">
+            <h2>Transaction History</h2>
+            <div class="transactions-filter">
+              <select id="transactionFilter" onchange="filterTransactions()">
+                <option value="all">All Transactions</option>
+                <option value="deposit">Deposits</option>
+                <option value="withdrawal">Withdrawals</option>
+                <option value="mining_profit">Mining Profits</option>
+                <option value="referral_bonus">Referral Bonuses</option>
+              </select>
+            </div>
+            <div class="transactions-list" id="allTransactions">
+              <p class="no-data">Loading...</p>
+            </div>
+          </section>
+
+          <!-- Referrals Section -->
+          <section id="referrals-section" class="content-section">
+            <h2>Referral Program</h2>
+            <div class="referral-stats">
+              <div class="referral-card">
+                <h3>Total Referrals</h3>
+                <p id="referralCount">0</p>
+              </div>
+              <div class="referral-card">
+                <h3>Referral Earnings</h3>
+                <p id="referralEarnings">0.00000000 BTC</p>
+              </div>
+            </div>
+            <div class="referral-link">
+              <h3>Your Referral Link</h3>
+              <div class="link-box">
+                <input type="text" id="referralCode" readonly />
+                <button onclick="copyReferralLink()">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </div>
+            <div class="referrals-list">
+              <h3>Your Referrals</h3>
+              <div id="referralList">
+                <p class="no-data">Loading...</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Wallet Section -->
+          <section id="wallet-section" class="content-section">
+            <h2>Wallet Management</h2>
+            <div class="wallet-balance-card">
+              <h3>Available Balance</h3>
+              <p class="balance" id="walletBalanceDetails">0.00000000 BTC</p>
+            </div>
+            <div class="wallet-actions">
+              <div class="deposit-card">
+                <h3>Deposit</h3>
+                <p>Deposit BTC to your wallet</p>
+                <button class="btn-primary" onclick="showDeposit()">
+                  Deposit Now
+                </button>
+              </div>
+              <div class="withdraw-card">
+                <h3>Withdraw</h3>
+                <p>Withdraw your earnings</p>
+                <button class="btn-primary" onclick="showWithdraw()">
+                  Withdraw Now
+                </button>
+              </div>
+            </div>
+            <div class="wallet-activity">
+              <h3>Recent Activity</h3>
+              <div id="walletTransactionsList" class="transactions-list">
+                <!--will be filled by JS-->
+              </div>
+            </div>
+            <!--<div class="wallet-address">
+              <h3>Your Deposit Address</h3>
+              <div class="address-box">
+                <input
+                  type="text"
+                  id="walletAddress"
+                  placeholder="Set your wallet address"
+                />
+                <button onclick="updateWalletAddress()">
+                  <i class="fas fa-save"></i>
+                </button>
+              </div>
+            </div>-->
+          </section>
+
+          <!-- Support Section -->
+          <section id="support-section" class="content-section">
+            <h2>Support Tickets</h2>
+            <div class="section-header">
+              <button class="btn-primary" onclick="showNewTicket()">
+                <i class="fas fa-plus"></i> New Ticket
+              </button>
+            </div>
+            <div class="tickets-list" id="supportTicketsList">
+              <p class="no-data">Loading...</p>
+            </div>
+          </section>
+          <!-- Live Support Section -->
+          <section id="live-support-section" class="content-section">
+            <div class="live-chat-container">
+              <div class="chat-header">
+                <i class="fas fa-headset"></i>
+                <div>
+                  <strong>Support Team</strong><br />
+                  <span class="online-dot"></span> Online now
+                </div>
+                <div
+                  style="
+                    margin-left: auto;
+                    display: flex;
+                    gap: 12px;
+                    align-items: center;
+                  "
+                >
+                  <button
+                    class="mini-refresh-btn"
+                    onclick="refreshUserChat()"
+                    title="Refresh chat"
+                  >
+                    <i class="fas fa-sync-alt"></i>
+                  </button>
+                  <button
+                    class="mini-close-btn"
+                    onclick="showSection('dashboard')"
+                    title="Close chat"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="chat-messages" id="liveChatMessages"></div>
+              <div class="chat-input-area">
+                <input
+                  type="text"
+                  id="liveChatInput"
+                  placeholder="Type your message..."
+                  onkeypress="if (event.key === 'Enter') sendLiveChatMessage();"
+                />
+                <button onclick="sendLiveChatMessage()">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Settings Section -->
+          <section id="settings-section" class="content-section">
+            <h2>Account Settings</h2>
+            <div class="settings-form">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="fullName" placeholder="Your full name" />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  placeholder="Your email"
+                  readonly
+                />
+              </div>
+              <div class="form-group">
+                <label>Username</label>
+                <input
+                  type="text"
+                  id="username"
+                  placeholder="Username"
+                  readonly
+                />
+              </div>
+              <div class="form-group">
+                <label>Two-Factor Authentication</label>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="twoFactor" />
+                  <label for="twoFactor">Enable 2FA</label>
+                </div>
+              </div>
+              <button class="btn-primary" onclick="updateSettings()">
+                Save Changes
+              </button>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="buyPackageModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('buyPackageModal')"
+          >&times;</span
+        >
+        <h2>Buy Mining Package</h2>
+        <div id="packageOptions">
+          <!-- Package options will be loaded here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="depositModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('depositModal')">&times;</span>
+        <h2>Deposit BTC</h2>
+        <p>Send BTC to the following address:</p>
+        <div class="deposit-address">
+          <input
+            type="text"
+            id="depositAddress"
+            value="3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
+            readonly
+          />
+          <button onclick="copyAddress()">Copy</button>
+        </div>
+        <div class="qr-code">
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
+            alt="QR Code"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENT SELECTION MODAL -->
+    <div id="paymentModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('paymentModal')">&times;</span>
+        <h2>Select Payment Method</h2>
+        <p
+          id="paymentPackageInfo"
+          style="font-weight: 600; margin-bottom: 20px"
+        ></p>
+        <div
+          id="paymentMethodsList"
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+          "
+        ></div>
+      </div>
+    </div>
+
+    <!-- PAYMENT DETAILS MODAL -->
+    <div id="paymentDetailsModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('paymentDetailsModal')"
+          >&times;</span
+        >
+        <h2 id="selectedMethodName"></h2>
+        <div id="paymentDetailsContent"></div>
+        <div class="form-group">
+          <label>Transaction Hash (optional)</label
+          ><input type="text" id="txHashInput" />
+        </div>
+        <button class="btn-primary" onclick="confirmPayment()">
+          ✅ I Have Made the Payment
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCESS MODAL -->
+    <div id="paymentSuccessModal" class="modal">
+      <div class="modal-content" style="text-align: center">
+        <span class="close" onclick="closeModal('paymentSuccessModal')"
+          >&times;</span
+        >
+        <h2 style="color: var(--success)">Payment Submitted Successfully!</h2>
+        <p>Thank you! Your payment is now being verified by our team.</p>
+        <p><strong>Confirmation usually takes up to 2 working days.</strong></p>
+        <p>
+          You will receive an email as soon as your mining package is activated.
+        </p>
+        <button
+          class="btn-primary"
+          onclick="
+            closeModal('paymentSuccessModal');
+            location.reload();
+          "
+        >
+          OK
+        </button>
+      </div>
+    </div>
+
+    <div id="withdrawModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('withdrawModal')">&times;</span>
+        <h2>Withdraw BTC</h2>
+        <form onsubmit="handleWithdraw(event)">
+          <div class="form-group">
+            <label>Amount (BTC)</label>
+            <input
+              type="number"
+              id="withdrawAmount"
+              step="0.00000001"
+              min="0.001"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Wallet Address</label>
+            <input type="text" id="withdrawAddress" required />
+          </div>
+          <div class="withdraw-info">
+            <p>Minimum withdrawal: 0.001 BTC</p>
+            <p>Withdrawal fee: 0.0005 BTC</p>
+          </div>
+          <button type="submit" class="btn-primary">Request Withdrawal</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="newTicketModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('newTicketModal')"
+          >&times;</span
+        >
+        <h2>Create Support Ticket</h2>
+        <form onsubmit="handleNewTicket(event)">
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" id="ticketSubject" required />
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="ticketPriority">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea id="ticketMessage" rows="5" required></textarea>
+          </div>
+          <button type="submit" class="btn-primary">Submit Ticket</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./JAVASCRIPT/supabaseConfig.js"></script>
+    <script src="./JAVASCRIPT/auth.js"></script>
+    <script src="./JAVASCRIPT/dashboard.js"></script>
+    <script>
+      let currentSection = "dashboard"; // track current tab
+      // Section navigation
+      function showSection(section) {
+        // 1. Remove active from all sidebar links
+        document
+          .querySelectorAll(".sidebar-nav a")
+          .forEach((link) => link.classList.remove("active"));
+
+        // 2. Try to highlight the corresponding sidebar link — but don't crash if not found
+        const sidebarLink = document.querySelector(
+          `.sidebar-nav a[href="#${section}"]`,
+        );
+        if (sidebarLink) {
+          sidebarLink.classList.add("active");
+        }
+        // If no sidebar link exists (e.g. Live Support from top bar) → that's fine, just skip
+
+        // 3. Switch visible section
+        document
+          .querySelectorAll(".content-section")
+          .forEach((s) => s.classList.remove("active"));
+
+        const activeSection = document.getElementById(`${section}-section`);
+        if (activeSection) {
+          activeSection.classList.add("active");
+        } else {
+          console.warn(`Section not found: ${section}-section`);
+        }
+
+        currentSection = section;
+
+        // 4. Update page title
+        const titles = {
+          dashboard: "Dashboard",
+          investments: "My Investments",
+          mining: "Mining Activity",
+          transactions: "Transaction History",
+          referrals: "Referral Program",
+          wallet: "Wallet Management",
+          support: "Support Tickets",
+          "live-support": "Live Support",
+          settings: "Account Settings",
+        };
+        document.getElementById("pageTitle").textContent =
+          titles[section] || "Dashboard";
+
+        // 5. Load data for this tab (your existing logic)
+        setTimeout(() => {
+          getUserProfile()
+            .then((user) => {
+              if (!user || !user.id) return;
+
+              switch (section) {
+                case "dashboard":
+                  loadDashboardData();
+                  break;
+                case "investments":
+                  loadAllInvestments(user.id);
+                  break;
+                case "mining":
+                  loadMiningStats(user.id);
+                  loadMiningSessions(user.id);
+                  loadMiningHistory(user.id);
+                  break;
+                case "transactions":
+                  loadAllTransactions(user.id);
+                  break;
+                case "referrals":
+                  loadReferralStats(user.id);
+                  loadReferralList(user.id);
+                  break;
+                case "wallet":
+                  loadWalletBalance?.(user.id);
+                  loadWalletTransactions?.(user.id);
+                  break;
+                case "support":
+                  loadSupportTickets(user.id);
+                  break;
+                case "live-support":
+                  loadLiveChatMessages();
+                  startLiveChatSubscription();
+                  break;
+                case "settings":
+                  loadUserSettings(user.id);
+                  break;
+              }
+            })
+            .catch((err) => console.error("Tab data load error:", err));
+        }, 10);
+      }
+      /*function showSection(section) {
+        // Update sidebar highlight
+        document
+          .querySelectorAll(".sidebar-nav a")
+          .forEach((link) => link.classList.remove("active"));
+        event.target.closest("a").classList.add("active");
+
+        // Switch visible section
+        document
+          .querySelectorAll(".content-section")
+          .forEach((s) => s.classList.remove("active"));
+        const activeSection = document.getElementById(`${section}-section`);
+        if (activeSection) activeSection.classList.add("active");
+
+        // Update title
+        const titles = {
+          dashboard: "Dashboard",
+          investments: "My Investments",
+          mining: "Mining Activity",
+          transactions: "Transaction History",
+          referrals: "Referral Program",
+          wallet: "Wallet Management",
+          support: "Support Tickets",
+          settings: "Account Settings",
+        };
+        document.getElementById("pageTitle").textContent =
+          titles[section] || "Dashboard";
+
+        // ─────────────────────────────────────────────────────────────
+        // SAFE TAB LOADING (this fixes the race condition)
+        // ─────────────────────────────────────────────────────────────
+        // ─── LOAD DATA WHEN TAB IS OPENED ─────────────────────────────
+        setTimeout(() => {
+          // small delay to ensure functions are ready
+          getUserProfile()
+            .then((user) => {
+              if (!user || !user.id) {
+                console.warn("No user profile found for tab loading");
+                return;
+              }
+
+              switch (section) {
+                case "dashboard":
+                  // Optional: refresh dashboard stats if needed
+                  loadDashboardData(); // or just some parts like loadNotifications(user.id)
+                  break;
+
+                case "investments":
+                  loadAllInvestments(user.id);
+                  break;
+
+                case "mining":
+                  loadMiningStats(user.id);
+                  // If you have more mining data (sessions, charts, etc.)
+                  loadMiningSessions(user.id);
+                  loadMiningHistory(user.id);
+                  break;
+
+                case "transactions":
+                  loadAllTransactions(user.id);
+                  break;
+
+                case "referrals":
+                  loadReferralStats(user.id);
+                  loadReferralList(user.id);
+                  break;
+
+                case "wallet":
+                  // If you have wallet-specific loading
+                  loadWalletBalance(user.id); // if this function exists
+                  loadWalletTransactions(user.id); // recent deposits/withdrawals
+                  break;
+
+                case "support":
+                  loadSupportTickets(user.id);
+                  break;
+
+                case "live-support":
+                  loadLiveChatMessages();
+                  startLiveChatSubscription();
+                  break;
+
+                case "settings":
+                  // Usually static or loads once → can be empty or load user profile again
+                  loadUserSettings(user.id);
+                  break;
+
+                default:
+                  console.log(
+                    `No specific loader defined for section: ${section}`,
+                  );
+              }
+            })
+            .catch((err) => {
+              console.error("Error loading tab data:", err);
+            });
+        }, 10);
+      }*/
+
+      // Modal functions
+      function showBuyPackage() {
+        document.getElementById("buyPackageModal").style.display = "block";
+        loadPackagesForPurchase();
+      }
+
+      function showDeposit() {
+        document.getElementById("paymentModal").style.display = "block";
+        loadPaymentMethodsList();
+      }
+
+      function showWithdraw() {
+        document.getElementById("withdrawModal").style.display = "block";
+      }
+
+      function showNewTicket() {
+        document.getElementById("newTicketModal").style.display = "block";
+      }
+
+      function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+      }
+
+      // Load packages for purchase
+      async function loadPackagesForPurchase() {
+        try {
+          const { data, error } = await supabaseClient
+            .from("mining_packages")
+            .select("*")
+            .eq("is_active", true);
+
+          if (error) throw error;
+
+          const container = document.getElementById("packageOptions");
+          container.innerHTML = data
+            .map(
+              (pkg) => `
+                    <div class="package-option" onclick="purchasePackage('${pkg.id}')">
+                        <h4>${pkg.name}</h4>
+                        <p>Price: ${pkg.price} BTC</p>
+                        <p>Mining Power: ${pkg.mining_power} MH/s</p>
+                        <p>Daily ROI: ${pkg.daily_roi}%</p>
+                        <p>Duration: ${pkg.duration_days} days</p>
+                    </div>
+                `,
+            )
+            .join("");
+        } catch (error) {
+          console.error("Load packages error:", error);
+        }
+      }
+
+      // Purchase package
+      let currentPackageId = null;
+      let currentPrice = 0;
+
+      async function purchasePackage(packageId) {
+        closeModal("buyPackageModal");
+        const { data: pkg } = await supabaseClient
+          .from("mining_packages")
+          .select("name,price")
+          .eq("id", packageId)
+          .single();
+        currentPackageId = packageId;
+        currentPrice = pkg.price;
+
+        document.getElementById("paymentPackageInfo").innerHTML =
+          `Package: <strong>${pkg.name}</strong><br>Amount: <strong>${pkg.price} BTC</strong>`;
+        loadPaymentMethodsList();
+        document.getElementById("paymentModal").style.display = "block";
+      }
+
+      async function loadPaymentMethodsList() {
+        const { data } = await supabaseClient
+          .from("payment_methods")
+          .select("*")
+          .eq("is_active", true);
+        document.getElementById("paymentMethodsList").innerHTML = data
+          .map(
+            (m) => `
+    <div class="package-option" onclick="showPaymentDetails('${m.id}')">
+      <h4>${m.name}</h4><p>${m.type.toUpperCase()}</p>
+    </div>
+  `,
+          )
+          .join("");
+      }
+
+      async function showPaymentDetails(methodId) {
+        closeModal("paymentModal");
+        const { data: m } = await supabaseClient
+          .from("payment_methods")
+          .select("*")
+          .eq("id", methodId)
+          .single();
+        document.getElementById("selectedMethodName").textContent = m.name;
+        document.getElementById("paymentDetailsContent").innerHTML = `
+    <p><strong>Minimum deposit: ${currentPrice} BTC equivalent.<br>  
+You may deposit any amount above this minimum.</strong></p>
+    <div style="background:#1f2937;padding:15px;border-radius:8px;font-family:monospace;word-break:break-all;">${m.address_or_details}</div>
+    ${m.qr_code_url ? `<img src="${m.qr_code_url}" style="max-width:220px;margin:20px auto;display:block;border-radius:8px;">` : ""}
+    <p><strong>Instructions:</strong><br>${m.instructions || "No special instructions."}</p>
+  `;
+        document.getElementById("paymentDetailsModal").style.display = "block";
+      }
+
+      async function confirmPayment() {
+        const txHash =
+          document.getElementById("txHashInput").value.trim() || null;
+        const user = await getUserProfile();
+
+        if (!user || !user.id) {
+          alert("Session error - please login again");
+          return;
+        }
+
+        if (!currentPackageId || currentPrice <= 0) {
+          alert("Package information missing - please try again");
+          return;
+        }
+
+        try {
+          const investmentData = {
+            user_id: user.id,
+            package_id: currentPackageId,
+            amount: Number(currentPrice), // ← ensure number
+            status: "pending_payment",
+            // Optional but helpful fields (add them even if empty)
+            created_at: new Date().toISOString(),
+            // If you later add tx_hash column:
+            // tx_hash:     txHash,
+            // payment_method_id: selectedMethodId,  // if you track which method was chosen
+          };
+
+          console.log("Attempting to insert investment:", investmentData); // ← debug
+
+          const { data, error } = await supabaseClient
+            .from("investments")
+            .insert([investmentData])
+            .select()
+            .single();
+
+          if (error) {
+            console.error("Supabase insert error:", error);
+            alert(
+              "Payment submission failed: " +
+                (error.message || "Unknown error"),
+            );
+            console.log(
+              "Full error details:",
+              error.details,
+              error.hint,
+              error.code,
+            );
+            return;
+          }
+
+          // Optional: also create the transaction record
+          await supabaseClient.from("transactions").insert([
+            {
+              user_id: user.id,
+              type: "deposit",
+              amount: Number(currentPrice),
+              status: "pending",
+              tx_hash: txHash,
+              description: "Pending deposit - awaiting approval",
+            },
+          ]);
+
+          closeModal("paymentDetailsModal");
+          document.getElementById("paymentSuccessModal").style.display =
+            "block";
+
+          // Optional: reset variables
+          currentPackageId = null;
+          currentPrice = 0;
+        } catch (err) {
+          console.error("Unexpected error in confirmPayment:", err);
+          alert("System error during submission. Please contact support.");
+        }
+      }
+
+      // Handle withdrawal
+      async function handleWithdraw(event) {
+        event.preventDefault();
+        // Implement withdrawal logic
+        closeModal("withdrawModal");
+      }
+
+      // Handle new ticket
+      async function handleNewTicket(event) {
+        event.preventDefault();
+        // Implement ticket creation logic
+        closeModal("newTicketModal");
+      }
+
+      // Copy functions
+      function copyReferralLink() {
+        const input = document.getElementById("referralCode");
+        input.select();
+        document.execCommand("copy");
+        alert("Referral link copied!");
+      }
+
+      function copyAddress() {
+        const input = document.getElementById("depositAddress");
+        input.select();
+        document.execCommand("copy");
+        alert("Address copied!");
+      }
+
+      // Update wallet address
+      async function updateWalletAddress() {
+        const address = document.getElementById("walletAddress").value;
+        if (address) {
+          const result = await updateUserProfile({ wallet_address: address });
+          if (result.success) {
+            alert("Wallet address updated!");
+          }
+        }
+      }
+
+      // Update settings
+      async function updateSettings() {
+        const fullName = document.getElementById("fullName").value;
+        const twoFactor = document.getElementById("twoFactor").checked;
+
+        const result = await updateUserProfile({
+          full_name: fullName,
+          two_factor_enabled: twoFactor,
+        });
+
+        if (result.success) {
+          alert("Settings updated!");
+        }
+      }
+
+      // Toggle notifications dropdown
+      function toggleNotifications() {
+        const dropdown = document.getElementById("notificationsDropdown");
+        dropdown.style.display =
+          dropdown.style.display === "block" ? "none" : "block";
+      }
+
+      // Mark all notifications as read
+      async function markAllRead() {
+        const user = await getUserProfile();
+        if (user) {
+          const { error } = await supabaseClient
+            .from("notifications")
+            .update({ is_read: true })
+            .eq("user_id", user.id)
+            .eq("is_read", false);
+
+          if (!error) {
+            loadNotifications(user.id);
+            document.getElementById("notificationsDropdown").style.display =
+              "none";
+          }
+        }
+      }
+
+      // Filter transactions
+      function filterTransactions() {
+        // Implement transaction filtering
+      }
+
+      // Close modals when clicking outside
+      window.onclick = function (event) {
+        const modals = document.getElementsByClassName("modal");
+        for (let modal of modals) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        }
+
+        const dropdown = document.getElementById("notificationsDropdown");
+        if (dropdown && !event.target.closest(".notification-icon")) {
+          dropdown.style.display = "none";
+        }
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Amazon Crypto</title>
+    <link rel="stylesheet" href="./CSS/signup.css">
+    <link rel="stylesheet" href="./CSS/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Signup specific styles */
+        .password-strength {
+            margin-top: 5px;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .strength-bar.weak {
+            width: 33.33%;
+            background-color: var(--danger);
+        }
+
+        .strength-bar.medium {
+            width: 66.66%;
+            background-color: var(--warning);
+        }
+
+        .strength-bar.strong {
+            width: 100%;
+            background-color: var(--success);
+        }
+
+        .terms-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .terms-checkbox input[type="checkbox"] {
+            width: auto;
+        }
+
+        .terms-checkbox label {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+
+        .terms-checkbox a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-coins"></i>
+                <span>Amazon Crypto</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Signup Form -->
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <div class="logo">
+                    <i class="fas fa-coins"></i>
+                    <span>Amazon Crypto</span>
+                </div>
+                <h2>Create Account</h2>
+                <p>Start your mining journey today</p>
+            </div>
+
+            <div id="alertMessage" class="alert"></div>
+
+            <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="Choose a username" minlength="3" maxlength="20">
+                </div>
+
+                <div class="form-group">
+                    <label for="fullName">Full Name (Optional)</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="Enter your full name">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-input">
+                        <input type="password" id="password" name="password" required 
+                               placeholder="Create a password" minlength="8" onkeyup="checkPasswordStrength()">
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword('password')"></i>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-bar" id="strengthBar"></div>
+                    </div>
+                    <div class="password-hint">
+                        <small>Minimum 8 characters with letters and numbers</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <div class="password-input">
+                        <input type="password" id="confirmPassword" name="confirmPassword" required 
+                               placeholder="Confirm your password">
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword('confirmPassword')"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="referralCode">Referral Code (Optional)</label>
+                    <input type="text" id="referralCode" name="referralCode" 
+                           placeholder="Enter referral code if you have one">
+                </div>
+
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">
+                        I agree to the <a href="#" onclick="showTerms()">Terms of Service</a> and 
+                        <a href="#" onclick="showPrivacy()">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./JAVASCRIPT/supabaseConfig.js"></script>
+    <script src="./JAVASCRIPT/auth.js"></script>
+    <script>
+        // Toggle password visibility
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.nextElementSibling;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Check password strength
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const strengthBar = document.getElementById('strengthBar');
+            
+            // Remove all classes
+            strengthBar.className = 'strength-bar';
+            
+            if (password.length === 0) {
+                strengthBar.style.width = '0';
+                return;
+            }
+            
+            // Calculate strength
+            let strength = 0;
+            
+            // Length check
+            if (password.length >= 8) strength += 1;
+            if (password.length >= 12) strength += 1;
+            
+            // Character variety
+            if (/[a-z]/.test(password)) strength += 0.5;
+            if (/[A-Z]/.test(password)) strength += 0.5;
+            if (/[0-9]/.test(password)) strength += 0.5;
+            if (/[^a-zA-Z0-9]/.test(password)) strength += 0.5;
+            
+            // Set bar class based on strength
+            if (strength <= 2) {
+                strengthBar.classList.add('weak');
+            } else if (strength <= 3.5) {
+                strengthBar.classList.add('medium');
+            } else {
+                strengthBar.classList.add('strong');
+            }
+        }
+
+
+        async function handleSignup(event) {
+    event.preventDefault();
+    
+    const username = document.getElementById('username').value.trim();
+    const fullName = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const referralCode = document.getElementById('referralCode').value.trim();
+    const terms = document.getElementById('terms').checked;
+    
+    const alertDiv = document.getElementById('alertMessage');
+    alertDiv.className = 'alert';
+    alertDiv.textContent = '';
+
+    // Basic validation
+    if (password !== confirmPassword) {
+        alertDiv.className = 'alert error';
+        alertDiv.textContent = 'Passwords do not match';
+        return;
+    }
+    if (password.length < 8) {
+        alertDiv.className = 'alert error';
+        alertDiv.textContent = 'Password must be at least 8 characters';
+        return;
+    }
+    if (!terms) {
+        alertDiv.className = 'alert error';
+        alertDiv.textContent = 'You must agree to the Terms';
+        return;
+    }
+
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Creating Account...';
+    submitBtn.disabled = true;
+
+    try {
+        console.log('🚀 Starting signup for:', email);
+        
+        const result = await signUp(email, password, username, fullName);
+        
+        console.log('📨 Signup result:', result);
+
+        if (result.success) {
+            alertDiv.className = 'alert success';
+            alertDiv.textContent = 'Account created! Check your email to confirm...';
+            
+            // DELAYED redirect so you can see console logs
+            setTimeout(() => {
+                console.log('✅ Redirecting to dashboard after successful signup');
+                window.location.href = 'dashboard.html';
+            }, 3000);   // 3 seconds delay
+        } else {
+            alertDiv.className = 'alert error';
+            alertDiv.textContent = result.error || 'Signup failed';
+            console.error('❌ Signup failed:', result.error);
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('💥 Uncaught signup error:', error);
+        alertDiv.className = 'alert error';
+        alertDiv.textContent = 'Unexpected error: ' + error.message;
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+        // Handle signup form submission
+        /*async function handleSignup(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const referralCode = document.getElementById('referralCode').value;
+            const terms = document.getElementById('terms').checked;
+            
+            const alertDiv = document.getElementById('alertMessage');
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                alertDiv.className = 'alert error';
+                alertDiv.textContent = 'Passwords do not match';
+                return;
+            }
+            
+            // Validate password strength
+            if (password.length < 8) {
+                alertDiv.className = 'alert error';
+                alertDiv.textContent = 'Password must be at least 8 characters long';
+                return;
+            }
+            
+            // Validate terms
+            if (!terms) {
+                alertDiv.className = 'alert error';
+                alertDiv.textContent = 'You must agree to the Terms of Service';
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Creating Account...';
+            submitBtn.disabled = true;
+            
+            try {
+                const result = await signUp(email, password, username, fullName);
+                
+                if (result.success) {
+                    alertDiv.className = 'alert success';
+                    alertDiv.textContent = 'Account created successfully! Redirecting to login...';
+                    
+                    // Clear form
+                    event.target.reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    alertDiv.className = 'alert error';
+                    alertDiv.textContent = result.error || 'Failed to create account';
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                alertDiv.className = 'alert error';
+                alertDiv.textContent = 'An error occurred. Please try again.';
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }*/
+
+        // Show terms modal
+        function showTerms() {
+            alert('Terms of Service will be displayed here');
+        }
+
+        // Show privacy policy modal
+        function showPrivacy() {
+            alert('Privacy Policy will be displayed here');
+        }
+    </script>
+</body>
+</html>
