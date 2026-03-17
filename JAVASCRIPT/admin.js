@@ -404,7 +404,7 @@ async function loadInvestmentsTable(page = 1, filter = "all", search = "") {
 }
 
 // Load withdrawals table
-async function loadWithdrawalsTable(filter = "all") {
+/*async function loadWithdrawalsTable(filter = "all") {
   try {
     let query = supabaseClient;
     const { data, error, count } = await supabaseClient
@@ -481,6 +481,228 @@ async function loadWithdrawalsTable(filter = "all") {
       .join("");
   } catch (error) {
     console.error("Load withdrawals table error:", error);
+  }
+}*/
+async function loadWithdrawalsTable(filter = "all") {
+  try {
+    let query = supabaseClient
+      .from("withdrawal_requests")
+      .select(
+        `
+                id,
+                amount,
+                wallet_address,
+                status,
+                created_at,
+                processed_at,
+                rejection_reason,
+                user_id,
+                users!user_id (username, email)
+            `,
+      )
+      .order("created_at", { ascending: false });
+
+    if (filter !== "all") {
+      query = query.eq("status", filter);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Withdrawals fetch error:", error);
+      return;
+    }
+
+    const tbody = document.getElementById("withdrawalsTableBody");
+    if (!tbody) return;
+
+    if (!data?.length) {
+      tbody.innerHTML =
+        '<tr><td colspan="6">No withdrawal requests found</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data
+      .map(
+        (req) => `
+            <tr>
+                <td>${formatDate(req.created_at)}</td>
+                <td>${req.users?.username || req.users?.email || "—"}</td>
+                <td>${formatBTC(req.amount)}</td>
+                <td title="${req.wallet_address}">${req.wallet_address.substring(0, 8)}...</td>
+                <td><span class="status-badge status-${req.status}">${req.status}</span></td>
+                <td class="actions">
+                    ${
+                      req.status === "pending"
+                        ? `
+                        <button class="btn btn-success btn-sm me-1" 
+                                onclick="adminProcessWithdrawal('${req.id}', 'approved')">
+                            Approve
+                        </button>
+                        <button class="btn btn-danger btn-sm" 
+                                onclick="adminProcessWithdrawal('${req.id}', 'rejected')">
+                            Reject
+                        </button>
+                    `
+                        : req.status.charAt(0).toUpperCase() +
+                          req.status.slice(1)
+                    }
+                </td>
+            </tr>
+        `,
+      )
+      .join("");
+  } catch (err) {
+    console.error("Load withdrawals crash:", err);
+  }
+}
+
+// Very important function – handles both approve & reject
+async function adminProcessWithdrawal(requestId, action) {
+  if (
+    !confirm(
+      `Are you sure you want to ${action === "approved" ? "APPROVE" : "REJECT"} this withdrawal?`,
+    )
+  ) {
+    return;
+  }
+
+  let rejectionReason = null;
+  if (action === "rejected") {
+    rejectionReason = prompt(
+      "Reason for rejection (will be sent to user):",
+    )?.trim();
+    if (!rejectionReason) {
+      alert("You must provide a rejection reason.");
+      return;
+    }
+  }
+
+  try {
+    // Get current admin
+    const adminProfile = await getUserProfile();
+    if (!adminProfile?.is_admin) {
+      alert("Only administrators can process withdrawals.");
+      return;
+    }
+
+    // 1. Fetch the withdrawal request + user's current balance
+    const { data: req, error: fetchErr } = await supabaseClient
+      .from("withdrawal_requests")
+      .select(
+        `
+                id,
+                amount,
+                user_id,
+                wallet_address,
+                status,
+                created_at,
+                users!user_id (wallet_balance)
+            `,
+      )
+      .eq("id", requestId)
+      .single();
+
+    if (fetchErr) throw fetchErr;
+    if (!req) throw new Error("Withdrawal request not found");
+
+    if (req.status !== "pending") {
+      alert(`This request is already ${req.status}.`);
+      return;
+    }
+
+    console.log("Withdrawal request data:", req);
+
+    // 2. Check user balance exists
+    if (!req.users || typeof req.users.wallet_balance !== "number") {
+      throw new Error("User balance information is missing");
+    }
+
+    const currentBalance = Number(req.users.wallet_balance);
+    const withdrawAmount = Number(req.amount);
+
+    // 3. APPROVE logic
+    if (action === "approved") {
+      if (currentBalance < withdrawAmount) {
+        alert(
+          `Insufficient balance (${currentBalance.toFixed(8)} < ${withdrawAmount.toFixed(8)})`,
+        );
+        return;
+      }
+
+      const newBalance = currentBalance - withdrawAmount;
+
+      // Update user balance
+      const { error: balanceErr } = await supabaseClient
+        .from("users")
+        .update({ wallet_balance: newBalance })
+        .eq("id", req.user_id);
+
+      if (balanceErr) throw balanceErr;
+
+      // Log transaction – non-blocking
+      try {
+        await supabaseClient.from("transactions").insert({
+          user_id: req.user_id,
+          type: "withdrawal",
+          amount: -withdrawAmount,
+          status: "completed",
+          description: `Approved withdrawal to ${req.wallet_address}`,
+          completed_at: new Date().toISOString(),
+        });
+      } catch (txErr) {
+        console.error("Could not log transaction:", txErr);
+        // Don't stop the process – it's just logging
+      }
+
+      // Notify user
+      await createNotification(
+        req.user_id,
+        "Withdrawal Approved",
+        `Your withdrawal of ${withdrawAmount.toFixed(8)} BTC has been approved and processed.`,
+        "success",
+      );
+    }
+    // 4. REJECT logic
+    else {
+      await createNotification(
+        req.user_id,
+        "Withdrawal Rejected",
+        `Your withdrawal request of ${withdrawAmount.toFixed(8)} BTC was rejected.\n\nReason: ${rejectionReason}`,
+        "error",
+      );
+    }
+
+    // 5. Update withdrawal request status
+    const updateData = {
+      status: action === "approved" ? "approved" : "rejected",
+      processed_by: adminProfile.id,
+      processed_at: new Date().toISOString(),
+    };
+
+    if (action === "rejected") {
+      updateData.rejection_reason = rejectionReason;
+    }
+
+    const { error: updateErr } = await supabaseClient
+      .from("withdrawal_requests")
+      .update(updateData)
+      .eq("id", requestId);
+
+    if (updateErr) throw updateErr;
+
+    alert(
+      `Withdrawal request successfully ${action === "approved" ? "approved" : "rejected"}.`,
+    );
+
+    // Refresh table
+    loadWithdrawalsTable?.();
+  } catch (err) {
+    console.error("adminProcessWithdrawal error:", err);
+    alert(
+      "Error processing withdrawal:\n" +
+        (err.message || "Check console for details"),
+    );
   }
 }
 

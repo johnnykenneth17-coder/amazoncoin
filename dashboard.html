@@ -568,30 +568,45 @@
       </div>
     </div>
 
+    <!-- Inside <body> or at the end -->
     <div id="withdrawModal" class="modal">
       <div class="modal-content">
-        <span class="close" onclick="closeModal('withdrawModal')">&times;</span>
-        <h2>Withdraw BTC</h2>
-        <form onsubmit="handleWithdraw(event)">
+        <span class="close" onclick="closeModal('withdrawModal')">×</span>
+        <h2>Request Withdrawal</h2>
+
+        <form id="withdrawForm" onsubmit="handleWithdrawRequest(event)">
           <div class="form-group">
             <label>Amount (BTC)</label>
             <input
               type="number"
               id="withdrawAmount"
               step="0.00000001"
-              min="0.001"
+              min="0.005"
+              required
+            />
+            <small>Min: 0.005 BTC • Max: your available balance</small>
+          </div>
+
+          <div class="form-group">
+            <label>Bitcoin Address</label>
+            <input
+              type="text"
+              id="withdrawAddress"
+              placeholder="bc1q..."
               required
             />
           </div>
+
           <div class="form-group">
-            <label>Wallet Address</label>
-            <input type="text" id="withdrawAddress" required />
+            <p>Fee: 0.0005 BTC (estimated)</p>
+            <p id="withdrawPreview">
+              You will receive: <strong>0.00000000 BTC</strong>
+            </p>
           </div>
-          <div class="withdraw-info">
-            <p>Minimum withdrawal: 0.001 BTC</p>
-            <p>Withdrawal fee: 0.0005 BTC</p>
-          </div>
-          <button type="submit" class="btn-primary">Request Withdrawal</button>
+
+          <button type="submit" class="btn btn-primary">
+            Submit Withdrawal Request
+          </button>
         </form>
       </div>
     </div>
@@ -998,6 +1013,87 @@ You may deposit any amount above this minimum.</strong></p>
         } catch (err) {
           console.error("Unexpected error in confirmPayment:", err);
           alert("System error during submission. Please contact support.");
+        }
+      }
+
+      // Live preview of amount - fee
+      document
+        .getElementById("withdrawAmount")
+        ?.addEventListener("input", (e) => {
+          const amt = parseFloat(e.target.value) || 0;
+          const fee = 0.0005;
+          const receive = Math.max(0, amt - fee);
+          document.getElementById("withdrawPreview").innerHTML =
+            `You will receive: <strong>${receive.toFixed(8)} BTC</strong>`;
+        });
+
+      // Submit withdrawal request
+      async function handleWithdrawRequest(e) {
+        e.preventDefault();
+
+        const amountStr = document.getElementById("withdrawAmount").value;
+        const address = document.getElementById("withdrawAddress").value.trim();
+
+        const amount = parseFloat(amountStr);
+        if (!amount || amount < 0.005) {
+          alert("Minimum withdrawal is 0.005 BTC");
+          return;
+        }
+
+        if (
+          !address.startsWith("1") &&
+          !address.startsWith("3") &&
+          !address.startsWith("bc1")
+        ) {
+          alert("Please enter a valid Bitcoin address");
+          return;
+        }
+
+        const user = await getUserProfile();
+        if (!user) return;
+
+        if (amount > user.wallet_balance) {
+          alert("Insufficient balance");
+          return;
+        }
+
+        try {
+          // 1. Create withdrawal request
+          const { error: reqError } = await supabaseClient
+            .from("withdrawal_requests")
+            .insert({
+              user_id: user.id,
+              amount: amount,
+              wallet_address: address,
+              status: "pending",
+              created_at: new Date().toISOString(),
+            });
+
+          if (reqError) throw reqError;
+
+          // 2. Optional: create pending transaction record (some projects do this)
+          await supabaseClient.from("transactions").insert({
+            user_id: user.id,
+            type: "withdrawal",
+            amount: -amount, // negative = outgoing
+            status: "pending",
+            description: "Withdrawal request pending approval",
+            created_at: new Date().toISOString(),
+          });
+
+          alert(
+            "Withdrawal request submitted successfully!\nIt will be processed within 24 hours.",
+          );
+          closeModal("withdrawModal");
+
+          // Refresh relevant sections
+          await loadWalletBalance(user.id);
+          await loadAllTransactions(user.id);
+        } catch (err) {
+          console.error(err);
+          alert(
+            "Error submitting request: " + (err.message || "Unknown error"),
+          );
         }
       }
 
